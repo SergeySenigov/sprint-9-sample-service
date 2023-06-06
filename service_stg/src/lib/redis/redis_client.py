@@ -3,7 +3,6 @@ from typing import Dict
 
 import redis
 
-
 class RedisClient:
     def __init__(self, host: str, port: int, password: str, cert_path: str) -> None:
         self._client = redis.StrictRedis(
@@ -19,3 +18,4 @@ class RedisClient:
     def get(self, k) -> Dict:
         obj: str = self._client.get(k)  # type: ignore
         return json.loads(obj)
+    

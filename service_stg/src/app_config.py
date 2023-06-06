@@ -7,7 +7,7 @@ from lib.redis import RedisClient
 
 class AppConfig:
     CERTIFICATE_PATH = '/crt/YandexInternalRootCA.crt'
-    DEFAULT_JOB_INTERVAL = 25
+    DEFAULT_JOB_INTERVAL = 15
 
     def __init__(self) -> None:
 
