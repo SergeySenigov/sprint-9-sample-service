@@ -34,13 +34,13 @@ class StgMessageProcessor:
             msg = self._consumer.consume()
 
             if msg is None:
-                self._logger.info('msg is None ----- break')
+                self._logger.info('msg is not received ----- break')
                 break
 
             if "object_id" in msg:
                 pass
             else:
-                self._logger.info('MSG has no "object_id", skip to next iteration')
+                self._logger.info('MSG has no "object_id", skip to next msg')
                 continue 
 
             object_id = msg["object_id"]
@@ -110,7 +110,7 @@ class StgMessageProcessor:
 
             try:
                 self._producer.produce(msg_out)
-                self._logger.info('succesfully produced to topic "' + self._producer.topic + '"------------------')
+                self._logger.info('produced to topic "' + self._producer.topic + '" ------')
                 #self._logger.info('msg_out = ' + json.dumps(msg_out))
             except Exception as E:   
                 self._logger.info('ERROR producing to topic "' + self._producer.topic + '": ' + str(E))
