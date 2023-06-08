@@ -34,17 +34,27 @@ class StgMessageProcessor:
             msg = self._consumer.consume()
 
             if msg is None:
-                self._logger.info('msg is not received ----- break')
+                self._logger.info('msg is not received ----- ')
                 break
 
-            if "object_id" in msg:
-                pass
+            if "object_type" in msg:
+                object_type = msg["object_type"]
             else:
-                self._logger.info('MSG has no "object_id", skip to next msg')
+                self._logger.info('Msg has no "object_type", skip to next msg')
                 continue 
 
-            object_id = msg["object_id"]
-            object_type = msg["object_type"]
+            if msg["object_type"] != 'order':
+                self._logger.info('Msg has object_type not "order" but: ' + msg["object_type"] + ', skip to next msg')
+                continue  
+
+            if "object_id" in msg:
+                object_id = msg["object_id"]
+                self._logger.info('Msg with object_id=' + str(object_id) + ' received')
+                pass
+            else:
+                self._logger.info('Msg has no "object_id", skip to next msg')
+                continue 
+
             payload = msg["payload"]
             str_payload = json.dumps(payload)
 
@@ -85,6 +95,7 @@ class StgMessageProcessor:
             user = {}
             user["id"] = user_id
             user["name"] = redis_user["name"]
+            user["login"] = redis_user["login"]
             payload_out["user"] = user
 
             restaurant={}
