@@ -1,5 +1,7 @@
 version: "3.9"
 
+name: solution1
+
 services:
   stg-service:
     build:

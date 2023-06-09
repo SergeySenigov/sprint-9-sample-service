@@ -9,25 +9,22 @@ from lib.redis import RedisClient
 import json
 
 class StgMessageProcessor:
-    # def __init__(self, logger):
-    #     self._logger = logger
     def __init__(self,
                  kafka_consumer: KafkaConsumer,
                  kafka_producer: KafkaProducer,
                  redis_client: RedisClient,
                  stg_Repository: StgRepository,
-                 batch_size: int,
                  logger: Logger) -> None:
         self._logger = logger
         self._consumer = kafka_consumer
         self._producer = kafka_producer
         self._redis = redis_client
         self._stg_repository = stg_Repository
-        self._batch_size = batch_size
+        self._batch_size = 100
 
-    # функция, которая будет вызываться по расписанию.
+    # function called by scheduler
     def run(self) -> None:
-        # Пишем в лог, что джоб был запущен.
+        # put to log - process started
         # self._logger.info(f"{datetime.utcnow()}: START")
 
         for i in range(self._batch_size):
@@ -49,13 +46,19 @@ class StgMessageProcessor:
 
             if "object_id" in msg:
                 object_id = msg["object_id"]
-                self._logger.info('Msg with object_id=' + str(object_id) + ' received')
+                self._logger.info(self._consumer.topic + ' ---> ' + str(object_id))
                 pass
             else:
                 self._logger.info('Msg has no "object_id", skip to next msg')
                 continue 
 
-            payload = msg["payload"]
+            if "payload" in msg:    
+                payload = msg["payload"]
+            else:
+                self._logger.info('Msg has no "payload", skip to next msg')
+                self._logger.info(msg)
+                continue
+
             str_payload = json.dumps(payload)
 
             user = json.dumps(payload["user"])
@@ -121,11 +124,8 @@ class StgMessageProcessor:
 
             try:
                 self._producer.produce(msg_out)
-                self._logger.info('produced to topic "' + self._producer.topic + '" ------')
-                #self._logger.info('msg_out = ' + json.dumps(msg_out))
+                self._logger.info(str(msg_out["object_id"]) + ' ---> ' + self._producer.topic)
             except Exception as E:   
                 self._logger.info('ERROR producing to topic "' + self._producer.topic + '": ' + str(E))
                 self._logger.info('msg_out = ' + json.dumps(msg_out))
 
-        # Пишем в лог, что джоб успешно завершен.
-        # self._logger.info(f"{datetime.utcnow()}: FINISH")
