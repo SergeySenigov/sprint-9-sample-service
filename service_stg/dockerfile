@@ -25,7 +25,7 @@ RUN apt-get update -y
 COPY /src/. /src/.
 COPY /requirements.txt .
 
-# install needed Python packages and dependencies
+# install required Python packages and dependencies
 RUN pip install -r requirements.txt
 
 # copy certificates to login to cloud service

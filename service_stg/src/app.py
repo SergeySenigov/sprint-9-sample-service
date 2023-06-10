@@ -20,6 +20,7 @@ if __name__ == '__main__':
 
     # Init config. For convinience getting envs is placed in a separate class
     config = AppConfig()
+    
     stgRepository = StgRepository(config.pg_warehouse_db())
     
     # Init messages processor, pass objects to constructor

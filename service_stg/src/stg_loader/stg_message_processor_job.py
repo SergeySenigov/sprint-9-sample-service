@@ -35,7 +35,7 @@ class StgMessageProcessor:
             if "object_type" in msg:
                 object_type = msg["object_type"]
             else:
-                self._logger.info('Msg has no "object_type", skip to next msg')
+                self._logger.info('msg has no "object_type", skip to next msg')
                 continue 
 
             if msg["object_type"] != 'order':
@@ -57,41 +57,33 @@ class StgMessageProcessor:
                 self._logger.info(msg)
                 continue
 
-            str_payload = json.dumps(payload)
-
-            user = json.dumps(payload["user"])
-            user_id = payload["user"]["id"]
-            restaurant = json.dumps(payload["restaurant"])
-            restaurant_id = payload["restaurant"]["id"]
-
-            order_date = payload["date"]
-            cost = payload["cost"]
-            payment = payload["payment"]
-            final_status = payload["final_status"]
-            products = payload["order_items"]
-
             try:
-                self._stg_repository.order_events_insert(object_id, object_type, order_date, str_payload)
+                self._stg_repository.order_events_insert(object_id, object_type, datetime.now(), json.dumps(payload))
             except Exception as E:
-                self._logger.info('------------------')
                 self._logger.info('Error inserting into pg: ' + str(E))
 
-
+            user_id = payload["user"]["id"]
+            restaurant_id = payload["restaurant"]["id"]
+            
+            # get enrichment data on users and restaurant from redis
             redis_user = self._redis.get(user_id)
             redis_restaurant = self._redis.get(restaurant_id)
+            
+            products_menu = redis_restaurant["menu"]
 
-            menu = redis_restaurant["menu"]
+            order_products = payload["order_items"]
 
+            # forming outgoing msg enriching incoming msg
             msg_out = {}
             msg_out["object_id"] = object_id
             msg_out["object_type"] = object_type
 
             payload_out = {}
             payload_out["id"] = object_id
-            payload_out["date"] = order_date
-            payload_out["cost"] = cost
-            payload_out["payment"] = payment
-            payload_out["status"] = final_status
+            payload_out["date"] = payload["date"]
+            payload_out["cost"] = payload["cost"]
+            payload_out["payment"] = payload["payment"]
+            payload_out["status"] = payload["final_status"]
 
             user = {}
             user["id"] = user_id
@@ -104,11 +96,11 @@ class StgMessageProcessor:
             restaurant["name"] = redis_restaurant["name"]
             payload_out["restaurant"] = restaurant
 
-            for product in products:
+            for product in order_products:
                 product_id = product["id"]
                 product["category"] = "not found"
 
-                for menu_item in menu:
+                for menu_item in products_menu:
                     if menu_item["_id"] == product_id:
                         product["category"] = menu_item["category"]
                         break 
@@ -116,7 +108,7 @@ class StgMessageProcessor:
                 if product["category"] == "not found":
                     raise Exception("category for product_id " + product_id + " not found in restaurant " + restaurant_id)
 
-            payload_out["products"] = products
+            payload_out["products"] = order_products
 
             msg_out["payload"] = payload_out
 
