@@ -24,14 +24,12 @@ class StgMessageProcessor:
 
     # function called by scheduler
     def run(self) -> None:
-        # put to log - process started
-        # self._logger.info(f"{datetime.utcnow()}: START")
 
         for i in range(self._batch_size):
             msg = self._consumer.consume()
 
             if msg is None:
-                self._logger.info('msg is not received ----- ')
+                self._logger.info('msg is not received')
                 break
 
             if "object_type" in msg:
@@ -41,7 +39,7 @@ class StgMessageProcessor:
                 continue 
 
             if msg["object_type"] != 'order':
-                self._logger.info('Msg has object_type not "order" but: ' + msg["object_type"] + ', skip to next msg')
+                self._logger.info('msg has object_type not "order" but: ' + msg["object_type"] + ', skip to next msg')
                 continue  
 
             if "object_id" in msg:

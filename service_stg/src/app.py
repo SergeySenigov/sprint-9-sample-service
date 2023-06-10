@@ -10,33 +10,27 @@ from stg_loader.repository.stg_repository import StgRepository
 
 app = Flask(__name__)
 
-# Заводим endpoint для проверки, под нялся ли сервис.
-# Обратиться к нему можно будет GET-запросом по адресу localhost:5000/health.
-# Если в ответе будет healthy - сервис поднялся и работает.
-@app.get('/health')
-def health():
-    return "1_" + str(os.getenv('KAFKA_HOST')) + '_' + str(os.getenv('KAFKA_PORT')) + '_' +\
-         os.getenv('KAFKA_DESTINATION_TOPIC') + "_2"
+# Make endpoint to check if service is up
+@app.get('/')
+def index():
+    return 'service is up'
 
 if __name__ == '__main__':
-    #print("1" + str(os.getenv('KAFKA_HOST')) + str(os.getenv('KAFKA_PORT')) + "2")
-    # Устанавливаем уровень логгирования в Debug, чтобы иметь возможность просматривать отладочные логи.
     app.logger.setLevel(logging.INFO)
 
-    # # Инициализируем конфиг. Для удобства, вынесли логику получения значений переменных окружения в отдельный класс.
+    # Init config. For convinience getting envs is placed in a separate class
     config = AppConfig()
     stgRepository = StgRepository(config.pg_warehouse_db())
     
-    # # Инициализируем процессор сообщений.
-    # # Пока он пустой. Нужен для того, чтобы потом в нем писать логику обработки сообщений из Kafka.
+    # Init messages processor, pass objects to constructor
     proc = StgMessageProcessor(config.kafka_consumer(), config.kafka_producer(), 
                                 config.redis_client(), stgRepository, app.logger) 
 
-    # # Запускаем процессор в бэкграунде.
-    # # BackgroundScheduler будет по расписанию вызывать функцию run нашего обработчика(SampleMessageProcessor).
+    # Run processor in background
+    # BackgroundScheduler will run upon schedule function "run" of StgMessageProcessor.
     scheduler = BackgroundScheduler()
     scheduler.add_job(func=proc.run, trigger="interval", seconds=config.DEFAULT_JOB_INTERVAL)
     scheduler.start()
     
-    # стартуем Flask-приложение.
+    # start Flask app to keep service running
     app.run(debug=True, host='0.0.0.0', use_reloader=False)

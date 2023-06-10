@@ -23,7 +23,6 @@ config:
   KAFKA_CONSUMER_PASSWORD: "bexvoh-dybsuv-7Juhci"
   KAFKA_CONSUMER_GROUP: "test-consumer1"
   KAFKA_SOURCE_TOPIC: "order-service_orders" 
-  #KAFKA_STG_SERVICE_ORDERS_TOPIC: "stg-service_orders"
   KAFKA_DESTINATION_TOPIC: "stg-service-orders"
 
   PG_WAREHOUSE_HOST: "rc1a-t39jskp0haj6of0q.mdb.yandexcloud.net"
