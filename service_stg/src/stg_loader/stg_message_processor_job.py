@@ -66,10 +66,14 @@ class StgMessageProcessor:
             restaurant_id = payload["restaurant"]["id"]
             
             # get enrichment data on users and restaurant from redis
-            redis_user = self._redis.get(user_id)
-            redis_restaurant = self._redis.get(restaurant_id)
-            
-            products_menu = redis_restaurant["menu"]
+            try:
+                redis_user = self._redis.get(user_id)
+                redis_restaurant = self._redis.get(restaurant_id)
+
+                products_menu = redis_restaurant["menu"]
+            except Exception as E:   
+                self._logger.info('Error calling redis: ' + str(E)) 
+                continue
 
             order_products = payload["order_items"]
 

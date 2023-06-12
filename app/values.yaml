@@ -9,13 +9,11 @@ image:
   repository: cr.yandex/crp2knonkmhas624g7ve/stg_service
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v2023-06-06-r1"
+  tag: "v2023-06-10-r1"
 
 containerPort: 5000
 
 config:
-  EXAMPLE_ENV1: "value"
-  EXAMPLE_ANOTHER_ENV2: "value"
 
   KAFKA_HOST: "rc1a-bhipfo4k1kvocn6e.mdb.yandexcloud.net"
   KAFKA_PORT: "9091"
